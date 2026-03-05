@@ -29,9 +29,11 @@ FILE_TASK_MD = "task.md"
 PHASE_NAMES = {
     1: "Understand",
     2: "Clarify",
-    3: "Design",
-    4: "Implement",
-    5: "Complete",
+    3: "Optimize",
+    4: "Design",
+    5: "Review",
+    6: "Implement",
+    7: "Complete",
 }
 
 
@@ -175,7 +177,7 @@ def create_task(title: str, use_worktree: bool = False) -> dict:
         "status": "in_progress",
         "current_phase": 1,
         "phase_name": PHASE_NAMES[1],
-        "max_phases": 5,
+        "max_phases": 7,
         "use_worktree": use_worktree,
         "worktree_dir": worktree_dir,
         "created_at": datetime.now().isoformat(),
@@ -369,7 +371,7 @@ def main():
 
     # update-phase command
     phase_parser = subparsers.add_parser("update-phase", help="Update current phase")
-    phase_parser.add_argument("phase", type=int, help="Phase number (1-5)")
+    phase_parser.add_argument("phase", type=int, help="Phase number (1-7)")
 
     args = parser.parse_args()
 
@@ -401,7 +403,7 @@ def main():
             for task in tasks:
                 marker = "* " if task.get("is_current") else "  "
                 phase = task.get("current_phase", "?")
-                max_phase = task.get("max_phases", 5)
+                max_phase = task.get("max_phases", 7)
                 status = task.get("status", "unknown")
                 print(f"{marker}{task['id']} [{status}] phase {phase}/{max_phase}")
                 print(f"    {task.get('title', 'No title')}")

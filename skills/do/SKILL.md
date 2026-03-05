@@ -1,16 +1,16 @@
 ---
 name: do
-description: This skill should be used for structured feature development with codebase understanding. Triggers on /do command. Provides a 5-phase workflow (Understand, Clarify, Design, Implement, Complete) using codeagent-wrapper to orchestrate code-explorer, code-architect, code-reviewer, and develop agents in parallel.
+description: Enhanced structured feature development with 7-phase workflow (Understand, Clarify, Optimize, Design, Review, Implement, Complete). Integrates requirements clarification, best practices, database design, backend architecture, frontend design, and test-driven development.
 allowed-tools: ["Bash(python3:*/.claude/skills/do/scripts/setup-do.py*)", "Bash(python3:*/.claude/skills/do/scripts/task.py*)"]
 ---
 
-# do - Feature Development Orchestrator
+# do - Enhanced Feature Development Orchestrator
 
-An orchestrator for systematic feature development. Invoke agents via `codeagent-wrapper`, never write code directly.
+An orchestrator for systematic feature development with professional domain expertise. Invoke agents via `codeagent-wrapper`, never write code directly.
 
 ## Loop Initialization (REQUIRED)
 
-When triggered via `/do <task>`, initialize the task directory immediately without asking about worktree:
+When triggered via `/do <task>`, initialize the task directory immediately:
 
 ```bash
 python3 "$HOME/.claude/skills/do/scripts/setup-do.py" "<task description>"
@@ -19,7 +19,7 @@ python3 "$HOME/.claude/skills/do/scripts/setup-do.py" "<task description>"
 This creates a task directory under `.claude/do-tasks/` with:
 - `task.md`: Single file containing YAML frontmatter (metadata) + Markdown body (requirements/context)
 
-**Worktree decision is deferred until Phase 4 (Implement).** Phases 1-3 are read-only and do not require worktree isolation.
+**Worktree decision is deferred until Phase 6 (Implement).**
 
 ## Task Directory Management
 
@@ -27,7 +27,7 @@ Use `task.py` to manage task state:
 
 ```bash
 # Update phase
-python3 "$HOME/.claude/skills/do/scripts/task.py" update-phase 2
+python3 "$HOME/.claude/skills/do/scripts/task.py" update-phase <N>
 
 # Check status
 python3 "$HOME/.claude/skills/do/scripts/task.py" status
@@ -36,258 +36,647 @@ python3 "$HOME/.claude/skills/do/scripts/task.py" status
 python3 "$HOME/.claude/skills/do/scripts/task.py" list
 ```
 
-## Worktree Mode
-
-The worktree is created **only when needed** (right before Phase 4: Implement). If the user chooses worktree mode:
-
-1. Run setup with `--worktree` flag to create the worktree:
-   ```bash
-   python3 "$HOME/.claude/skills/do/scripts/setup-do.py" --worktree "<task description>"
-   ```
-
-2. Use the `DO_WORKTREE_DIR` environment variable to direct `codeagent-wrapper` develop agent into the worktree. **Do NOT pass `--worktree` to subsequent calls** — that creates a new worktree each time.
-
-```bash
-# Save the worktree path from setup output, then prefix all develop calls:
-DO_WORKTREE_DIR=<worktree_dir> codeagent-wrapper --agent develop - . <<'EOF'
-...
-EOF
-```
-
-Read-only agents (code-explorer, code-architect, code-reviewer) do NOT need `DO_WORKTREE_DIR`.
-
 ## Hard Constraints
 
 1. **Never write code directly.** Delegate all code changes to `codeagent-wrapper` agents.
 2. **Parallel-first.** Run independent tasks via `codeagent-wrapper --parallel`.
 3. **Update phase after each phase.** Use `task.py update-phase <N>`.
-4. **Expect long-running `codeagent-wrapper` calls.** High-reasoning modes can take a long time.
-5. **Timeouts are not an escape hatch.** If a call times out, retry with narrower scope.
-6. **Defer worktree decision until Phase 4.** Only ask about worktree mode right before implementation. If enabled, prefix develop agent calls with `DO_WORKTREE_DIR=<path>`. Never pass `--worktree` after initialization.
+4. **Expect long-running calls.** High-reasoning modes can take time.
+5. **Defer worktree until Phase 6.** Only ask about worktree mode right before implementation.
 
-## Agents
+## 7-Phase Workflow
 
-| Agent | Purpose | Needs --worktree |
-|-------|---------|------------------|
-| `code-explorer` | Trace code, map architecture, find patterns | No (read-only) |
-| `code-architect` | Design approaches, file plans, build sequences | No (read-only) |
-| `code-reviewer` | Review for bugs, simplicity, conventions | No (read-only) |
-| `develop` | Implement code, run tests | **Yes** — use `DO_WORKTREE_DIR` env prefix |
+### Phase 1: Requirements Analysis (Interactive PRD Generation)
 
-## Issue Severity Definitions
+**Goal:** Transform user requirements into professional PRD through interactive dialogue and quality scoring.
 
-**Blocking issues** (require user input):
-- Impacts core functionality or correctness
-- Security vulnerabilities
-- Architectural conflicts with existing patterns
-- Ambiguous requirements with multiple valid interpretations
+**Actions:** Use the `/product-requirements` skill to generate comprehensive PRD.
 
-**Minor issues** (auto-fix without asking):
-- Code style inconsistencies
-- Naming improvements
-- Missing documentation
-- Non-critical test coverage gaps
+```bash
+# Call the product-requirements skill
+/product-requirements
 
-## 5-Phase Workflow
+# Provide context:
+# - Original user request: <USER_REQUEST>
+```
 
-### Phase 1: Understand (Parallel, No Interaction)
+The skill will:
+1. Gather project context (README, package.json, tech stack)
+2. Assess requirements quality (100-point scoring system):
+   - Business Value & Goals (30 pts)
+   - Functional Requirements (25 pts)
+   - User Experience (20 pts)
+   - Technical Constraints (15 pts)
+   - Scope & Priorities (10 pts)
+3. Iteratively clarify requirements until 90+ quality score
+4. Generate professional PRD at `docs/{feature-name}-prd.md`
 
-**Goal:** Understand requirements and map codebase simultaneously.
+**Expected Output:**
+- PRD document with:
+  - Executive summary
+  - Problem statement and success metrics
+  - User personas and stories
+  - Functional requirements
+  - Technical constraints
+  - MVP scope and phasing
+  - Risk assessment
 
-**Actions:** Run `code-architect` and 2-3 `code-explorer` tasks in parallel.
+**After PRD generation, explore codebase:**
 
 ```bash
 codeagent-wrapper --parallel <<'EOF'
----TASK---
-id: p1_requirements
-agent: code-architect
-workdir: .
----CONTENT---
-Analyze requirements completeness (score 1-10):
-1. Extract explicit requirements, constraints, acceptance criteria
-2. Identify blocking questions (issues that prevent implementation)
-3. Identify minor clarifications (nice-to-have but can proceed without)
-
-Output format:
-- Completeness score: X/10
-- Requirements: [list]
-- Non-goals: [list]
-- Blocking questions: [list, if any]
-
 ---TASK---
 id: p1_similar_features
 agent: code-explorer
 workdir: .
 ---CONTENT---
-Find 1-3 similar features, trace end-to-end. Return: key files with line numbers, call flow, extension points.
+Find similar features in the codebase. Trace end-to-end flow.
+
+PRD: <PHASE1_PRD_OUTPUT>
+
+Output:
+- Similar implementations (file paths)
+- Patterns used
+- Reusable components
 
 ---TASK---
 id: p1_architecture
 agent: code-explorer
 workdir: .
 ---CONTENT---
-Map architecture for relevant subsystem. Return: module map + 5-10 key files.
+Map the architecture of relevant subsystems.
+
+PRD: <PHASE1_PRD_OUTPUT>
+
+Output:
+- Key files and their roles
+- Data flow
+- Dependencies
 
 ---TASK---
 id: p1_conventions
 agent: code-explorer
 workdir: .
 ---CONTENT---
-Identify testing patterns, conventions, config. Return: test commands + file locations.
-EOF
-```
+Identify testing patterns, conventions, and configurations.
 
-### Phase 2: Clarify (Conditional)
-
-**Goal:** Resolve blocking ambiguities only.
-
-**Actions:**
-1. Review `p1_requirements` output for blocking questions
-2. **IF blocking questions exist** → Use AskUserQuestion
-3. **IF no blocking questions (completeness >= 8)** → Skip to Phase 3
-
-### Phase 3: Design (No Interaction)
-
-**Goal:** Produce minimal-change implementation plan.
-
-```bash
-codeagent-wrapper --agent code-architect - . <<'EOF'
-Design minimal-change implementation:
-- Reuse existing abstractions
-- Minimize new files
-- Follow established patterns from Phase 1 exploration
+PRD: <PHASE1_PRD_OUTPUT>
 
 Output:
-- File touch list with specific changes
-- Build sequence
-- Test plan
-- Risks and mitigations
+- Test framework and patterns
+- Code style conventions
+- Build/deploy configurations
 EOF
 ```
 
-### Phase 4: Implement + Review
-
-**Goal:** Build feature and review in one phase.
-
-**Step 1: Decide on worktree mode (ONLY NOW)**
-
-Use AskUserQuestion to ask:
-
-```
-Develop in a separate worktree? (Isolates changes from main branch)
-- Yes (Recommended for larger changes)
-- No (Work directly in current directory)
+**After completion:**
+```bash
+python3 "$HOME/.claude/skills/do/scripts/task.py" update-phase 2
 ```
 
-If user chooses worktree:
+### Phase 2: Technical Clarification (Optional)
+
+**Goal:** Clarify technical stack and implementation details if needed.
+
+**Note:** `/product-requirements` in Phase 1 already handles business requirements clarification. This phase focuses on technical choices.
+
+**Actions:** Use the `/ask-questions-if-underspecified` skill if technical details are unclear.
+
+```bash
+# Call the ask-questions-if-underspecified skill
+/ask-questions-if-underspecified
+
+# Provide context:
+# - PRD from Phase 1: <PHASE1_PRD_OUTPUT>
+# - Codebase exploration: <PHASE1_CODEBASE_OUTPUT>
+```
+
+The skill will:
+- Analyze technical completeness
+- Generate structured multiple-choice questions for:
+  - Backend technology choices
+  - Frontend framework selection
+  - Database selection
+  - Authentication method
+  - Deployment strategy
+- Provide reasonable defaults
+- Support fast-path responses (e.g., "defaults")
+
+**Skip this phase if:**
+- PRD already specifies all technical choices
+- Tech stack is clear from existing codebase
+- User provided detailed technical requirements
+
+**After user responds (or if skipped):**
+```bash
+python3 "$HOME/.claude/skills/do/scripts/task.py" update-phase 3
+```
+
+### Phase 3: Optimize Prompt (Use best-practices Skill)
+
+**Goal:** Transform requirements into optimized, detailed specifications.
+
+**Actions:** Use the `/best-practices` skill directly.
+
+```bash
+# Call the best-practices skill with clarified requirements
+/best-practices
+
+# Provide:
+# - Original request: <USER_REQUEST>
+# - Clarified requirements: <PHASE2_OUTPUT>
+# - Context from Phase 1: <PHASE1_OUTPUT>
+```
+
+The skill will:
+1. Analyze task intent (task type, gaps, edge cases)
+2. Find relevant patterns from references
+3. Explore codebase for context
+4. Apply 5 transformation principles:
+   - Add verification (test cases, success criteria)
+   - Provide specific context (file paths, patterns)
+   - Add constraints (tech stack, performance, security)
+   - Structure in phases
+   - Include rich content (examples, error handling)
+5. Output optimized requirements document
+
+**After completion:**
+```bash
+python3 "$HOME/.claude/skills/do/scripts/task.py" update-phase 4
+```
+
+### Phase 4: Design Architecture (Enhanced with Domain Experts)
+
+**Goal:** Design database, backend, and frontend architecture using specialized agents.
+
+**4.1 Database Design (if needed)**
+
+Use the `/database-design` skill directly:
+
+```bash
+# Call the database-design skill with optimized requirements
+# The skill will handle the complete database design workflow
+/database-design <PHASE3_OUTPUT>
+```
+
+The skill will output:
+- SQL schema definitions
+- Index creation statements
+- Migration scripts
+- ER diagram (text description)
+
+**4.2 Backend Design (if needed)**
+
+Use the `/backend-development` skill directly:
+
+```bash
+# Call the backend-development skill with requirements and database design
+# The skill will handle the complete backend architecture design
+/backend-development <PHASE3_OUTPUT> <PHASE4_1_OUTPUT>
+```
+
+The skill will output:
+- API specification (OpenAPI)
+- Authentication flow diagram
+- Data access layer design
+- Caching strategy document
+
+**4.3 Frontend Design (if needed)**
+
+Use the `/frontend-design` skill directly:
+
+```bash
+# Call the frontend-design skill with requirements and backend API
+# The skill will handle the complete frontend design workflow
+/frontend-design <PHASE3_OUTPUT> <PHASE4_2_OUTPUT>
+```
+
+The skill will output:
+- Design concept statement
+- High-fidelity UI design (can use any language/framework for visualization)
+- Component structure diagram
+- Style guide (colors, fonts, spacing)
+- Interaction flow diagram
+
+**4.4 User Confirmation for Frontend Design (CRITICAL STEP)**
+
+**Present design to user:**
+
+Use AskUserQuestion:
+```
+Frontend design is complete. Please review the design.
+
+Design output:
+- Design concept and style
+- High-fidelity UI design (may include code or visualization)
+- Component structure and style guide
+
+Please confirm:
+1) Design is satisfactory, proceed to next phase
+2) Needs modification, please provide specific feedback
+
+If modification needed, please specify:
+- Which parts need adjustment? (layout, colors, fonts, animations, etc.)
+- What is the expected result?
+- Any reference examples or specific requirements?
+```
+
+**If user requests modifications, loop:**
+
+```bash
+# Call the frontend-design skill again with user feedback
+/frontend-design --feedback "<USER_FEEDBACK>" <PHASE4_3_OUTPUT>
+```
+
+The skill will:
+1. Analyze user feedback
+2. Adjust design based on feedback
+3. Re-implement high-fidelity design
+4. Output updated design with modification explanation
+
+**Repeat until user confirms satisfaction.**
+
+**After user confirms:**
+```bash
+python3 "$HOME/.claude/skills/do/scripts/task.py" update-phase 5
+```
+
+### Phase 5: Review Design (New - Design Consistency Check)
+
+**Goal:** Review all design documents for consistency and completeness.
+
+```bash
+codeagent-wrapper --agent design-reviewer - . <<'EOF'
+## All Design Documents
+- Database Design: <PHASE4_1_OUTPUT>
+- Backend Design: <PHASE4_2_OUTPUT>
+- Frontend Design: <PHASE4_3_OUTPUT>
+
+## Task
+Review design consistency and completeness:
+
+1. Database and Backend Consistency
+   - Do APIs match database schema?
+   - Do indexes support query needs?
+
+2. Backend and Frontend Consistency
+   - Is API contract clear?
+   - Is error handling unified?
+
+3. Security Check
+   - Is authentication/authorization complete?
+   - Is input validation sufficient?
+   - Is sensitive data protected?
+
+4. Performance Considerations
+   - Database query optimization
+   - API response time
+   - Frontend loading performance
+
+5. Maintainability
+   - Is code organization clear?
+   - Does it follow best practices?
+   - Is it easy to test?
+
+## Output
+- Design review report
+- Areas needing adjustment
+- Risks and recommendations
+EOF
+```
+
+**After completion:**
+```bash
+python3 "$HOME/.claude/skills/do/scripts/task.py" update-phase 6
+```
+
+### Phase 6: Implement (Enhanced with Test-Driven Development)
+
+**Goal:** Implement based on design documents with test-driven approach.
+
+**Ask about worktree:**
+
+Use AskUserQuestion:
+```
+Ready to implement. Do you want to develop in an isolated worktree?
+
+Options:
+1) Yes - Create isolated worktree (recommended for large changes)
+2) No - Develop in main branch
+
+Worktree benefits:
+- Isolated development environment
+- Easy to discard if needed
+- No impact on main branch until merge
+```
+
+**If yes, create worktree:**
 ```bash
 python3 "$HOME/.claude/skills/do/scripts/setup-do.py" --worktree "<task description>"
-# Save the worktree path from output for DO_WORKTREE_DIR
+# Save the worktree path from output
 ```
 
-**Step 2: Invoke develop agent**
+**6.0 Generate Test Cases (New)**
 
-For full-stack projects, split into backend/frontend tasks with per-task `skills:` injection. Use `--parallel` when tasks can be split; use single agent when the change is small or single-domain.
-
-**Single-domain example** (prefix with `DO_WORKTREE_DIR` if worktree enabled):
+Use the `/test-cases` skill directly:
 
 ```bash
-# With worktree:
-DO_WORKTREE_DIR=<worktree_dir> codeagent-wrapper --agent develop --skills golang-base-practices - . <<'EOF'
-Implement with minimal change set following the Phase 3 blueprint.
-- Follow Phase 1 patterns
-- Add/adjust tests per Phase 3 plan
-- Run narrowest relevant tests
-EOF
-
-# Without worktree:
-codeagent-wrapper --agent develop --skills golang-base-practices - . <<'EOF'
-Implement with minimal change set following the Phase 3 blueprint.
-- Follow Phase 1 patterns
-- Add/adjust tests per Phase 3 plan
-- Run narrowest relevant tests
-EOF
+# Call the test-cases skill with all design documents
+# The skill will handle the complete test case generation workflow
+/test-cases <PHASE3_OUTPUT> <PHASE4_1_OUTPUT> <PHASE4_2_OUTPUT> <PHASE4_3_OUTPUT>
 ```
 
-**Full-stack parallel example** (adapt task IDs, skills, and content based on Phase 3 design):
+The skill will:
+1. Collect requirements
+2. Extract test scenarios (functional/boundary/error/state transition)
+3. Generate structured test cases with unique IDs
+4. Validate coverage
+5. Output to tests/<name>-test-cases.md
+
+Expected output:
+- Test cases document with TC-F/TC-E/TC-ERR/TC-ST categories
+- Coverage matrix
+- Summary of test cases generated
+
+**6.1 Database Migration (if database design exists)**
 
 ```bash
-# With worktree:
-DO_WORKTREE_DIR=<worktree_dir> codeagent-wrapper --parallel <<'EOF'
----TASK---
-id: p4_backend
-agent: develop
-workdir: .
-skills: golang-base-practices
----CONTENT---
-Implement backend changes following Phase 3 blueprint.
-- Follow Phase 1 patterns
-- Add/adjust tests per Phase 3 plan
+DO_WORKTREE_DIR=<WORKTREE_DIR> \
+codeagent-wrapper --agent develop - . <<'EOF'
+## Task
+Implement database migration
 
----TASK---
-id: p4_frontend
-agent: develop
-workdir: .
-skills: frontend-design,vercel-react-best-practices
-dependencies: p4_backend
----CONTENT---
-Implement frontend changes following Phase 3 blueprint.
-- Follow Phase 1 patterns
-- Add/adjust tests per Phase 3 plan
+## Database Design
+<PHASE4_1_OUTPUT>
+
+## Test Cases
+<PHASE6_0_OUTPUT> (database-related test cases)
+
+## Requirements
+- Create migration files
+- Implement up/down scripts
+- Add seed data (if needed)
+- Test migration
+- Verify data integrity constraints
+
+## Acceptance Criteria
+- Migration executes successfully
+- Can rollback
+- Data integrity constraints are correct
+- Pass related test cases
 EOF
-
-# Without worktree: remove DO_WORKTREE_DIR prefix
 ```
 
-Note: Choose which skills to inject based on Phase 3 design output. Only inject skills relevant to each task's domain.
-
-**Step 3: Review**
-
-**Step 3: Review**
-
-Run parallel reviews:
+**6.2 Backend Implementation (if backend design exists)**
 
 ```bash
-codeagent-wrapper --parallel <<'EOF'
----TASK---
-id: p4_correctness
-agent: code-reviewer
-workdir: .
----CONTENT---
-Review for correctness, edge cases, failure modes.
-Classify each issue as BLOCKING or MINOR.
+DO_WORKTREE_DIR=<WORKTREE_DIR> \
+codeagent-wrapper --agent develop - . <<'EOF'
+## Task
+Implement backend API
 
----TASK---
-id: p4_simplicity
-agent: code-reviewer
-workdir: .
----CONTENT---
-Review for KISS: remove bloat, collapse needless abstractions.
-Classify each issue as BLOCKING or MINOR.
+## Backend Design
+<PHASE4_2_OUTPUT>
+
+## Database Schema
+<PHASE4_1_OUTPUT>
+
+## Test Cases
+<PHASE6_0_OUTPUT> (backend API test cases)
+
+## Requirements
+- Implement all API endpoints
+- Implement authentication/authorization
+- Implement data access layer
+- Implement caching (if needed)
+- Add logging and monitoring
+- Write unit tests and integration tests (reference test cases)
+
+## Acceptance Criteria
+- All API endpoints work correctly
+- Test coverage > 80%
+- Authentication/authorization correct
+- Error handling complete
+- Pass all functional test cases (TC-F-XXX)
+- Pass all boundary test cases (TC-E-XXX)
+- Pass all error handling test cases (TC-ERR-XXX)
 EOF
 ```
 
-**Step 4: Handle review results**
+**6.3 Frontend Implementation (if frontend design exists)**
 
-- **MINOR issues only** → Auto-fix via `develop`, no user interaction
-- **BLOCKING issues** → Use AskUserQuestion: "Fix now / Proceed as-is"
+```bash
+DO_WORKTREE_DIR=<WORKTREE_DIR> \
+codeagent-wrapper --agent develop - . <<'EOF'
+## Task
+Implement frontend interface
 
-### Phase 5: Complete (No Interaction)
+## Frontend Design
+<PHASE4_3_OUTPUT>
 
-**Goal:** Document what was built.
+## Backend API
+<PHASE4_2_OUTPUT>
+
+## Test Cases
+<PHASE6_0_OUTPUT> (frontend interaction test cases)
+
+## Requirements
+- Implement all components
+- Implement state management
+- Implement API calls
+- Implement error handling
+- Implement loading states
+- Follow design guide (colors, fonts, animations)
+- Write component tests (reference test cases)
+
+## Acceptance Criteria
+- All features work correctly
+- UI matches design guide
+- Responsive design
+- Accessibility (WCAG AA)
+- Test coverage for key interactions
+- Pass all frontend test cases
+- Pass state transition test cases (TC-ST-XXX)
+EOF
+```
+
+**6.4 Execute Test Validation (New)**
+
+```bash
+DO_WORKTREE_DIR=<WORKTREE_DIR> \
+codeagent-wrapper --agent test-executor - . <<'EOF'
+## Task
+Execute test case validation
+
+## Test Cases Document
+<PHASE6_0_OUTPUT>
+
+## Implementation Results
+- Database: <PHASE6_1_OUTPUT>
+- Backend: <PHASE6_2_OUTPUT>
+- Frontend: <PHASE6_3_OUTPUT>
+
+## Requirements
+1. Execute all automated tests
+   - Unit tests
+   - Integration tests
+   - End-to-end tests
+
+2. Manually verify key test cases
+   - Core user flows
+   - Boundary conditions
+   - Error handling
+
+3. Generate test report
+   - Passed test cases
+   - Failed test cases
+   - Coverage statistics
+
+## Output Format
+Test report (tests/<name>-test-report.md):
+- Test execution summary
+- Pass rate statistics
+- Failed case details
+- Coverage analysis
+- Remaining issues
+
+## Acceptance Criteria
+- All high-priority test cases pass
+- Test coverage > 80%
+- Key user flows verified
+- Error handling correct
+EOF
+```
+
+**After completion:**
+```bash
+python3 "$HOME/.claude/skills/do/scripts/task.py" update-phase 7
+```
+
+### Phase 7: Complete (Code Review and Summary)
+
+**Goal:** Final code review and summary.
 
 ```bash
 codeagent-wrapper --agent code-reviewer - . <<'EOF'
-Write completion summary:
-- What was built
-- Key decisions/tradeoffs
-- Files modified (paths)
-- How to verify (commands)
-- Follow-ups (optional)
+## Implementation Results
+- Database: <PHASE6_1_OUTPUT>
+- Backend: <PHASE6_2_OUTPUT>
+- Frontend: <PHASE6_3_OUTPUT>
+- Test Report: <PHASE6_4_OUTPUT>
+
+## Task
+Comprehensive review of implementation:
+- Code quality
+- Test coverage
+- Performance
+- Security
+- Maintainability
+
+## Output
+- Review report
+- Improvement suggestions
+- Deployment checklist
 EOF
 ```
 
-Output the completion signal:
+**Mark task complete:**
+```bash
+python3 "$HOME/.claude/skills/do/scripts/task.py" complete
 ```
-<promise>DO_COMPLETE</promise>
+
+**Output `<promise>DO_COMPLETE</promise>` to signal completion.**
+
+## Agents and Skills Reference
+
+| Agent/Skill | Purpose | Phase | Type |
+|-------------|---------|-------|------|
+| `/product-requirements` | Generate PRD with quality scoring | 1 | Skill |
+| `code-explorer` | Trace code, map architecture | 1 | Agent |
+| `/ask-questions-if-underspecified` | Clarify technical choices (optional) | 2 | Skill |
+| `/best-practices` | Transform prompts with 5 principles | 3 | Skill |
+| `/database-design` | Design database schema and migrations | 4 | Skill |
+| `/backend-development` | Design backend API and architecture | 4 | Skill |
+| `/frontend-design` | Design frontend UI and components | 4 | Skill |
+| `design-reviewer` | Review design consistency | 5 | Agent |
+| `/test-cases` | Generate structured test cases | 6 | Skill |
+| `develop` | Implement code and run tests | 6 | Agent |
+| `test-executor` | Execute tests and generate report | 6 | Agent |
+| `code-reviewer` | Final code review | 7 | Agent |
+
+## Conditional Execution
+
+Not all phases require all agents/skills. Skip based on task type:
+
+- **Pure frontend task**: Skip `/database-design`, `/backend-development`
+- **Pure backend task**: Skip `/frontend-design`
+- **No database changes**: Skip `/database-design`
+- **Bug fix**: May skip Phase 4 entirely if design is clear
+
+## Best Practices
+
+1. **Always update phase** after completing each phase
+2. **Use parallel execution** when tasks are independent
+3. **Pass complete context** between phases
+4. **User confirmation** is mandatory for frontend design
+5. **Test-driven** approach in Phase 6
+6. **Defer worktree** decision until Phase 6
+
+## Anti-Patterns
+
+- ❌ Don't write code directly
+- ❌ Don't skip phase updates
+- ❌ Don't run sequential tasks in parallel
+- ❌ Don't forget user confirmation for frontend design
+- ❌ Don't skip test case generation
+- ❌ Don't proceed with failed tests
+
+## Example Usage
+
+```
+User: /do implement a blog system with articles, comments, and user authentication
+
+Phase 1: Requirements Analysis
+- Call /product-requirements skill
+- Interactive dialogue with quality scoring
+- Generate PRD at docs/blog-system-prd.md (Score: 92/100)
+- Explore codebase for similar features
+- Map architecture and conventions
+
+Phase 2: Technical Clarification (Optional)
+- Skip if tech stack clear from PRD
+- Or ask about: Backend (Python/Node.js/Go?)
+- Database (PostgreSQL/MySQL/MongoDB?)
+- Frontend (React/Vue/小程序?)
+- Authentication (JWT/Session/OAuth?)
+
+Phase 3: Optimize
+- Call /best-practices skill
+- Apply 5 transformation principles
+- Generate optimized requirements
+
+Phase 4: Design
+- Design database: users, posts, comments tables
+- Design backend: RESTful API, JWT auth
+- Design frontend: blog UI with unique style
+- User confirms frontend design ✓
+
+Phase 5: Review
+- Check database-backend consistency
+- Check backend-frontend consistency
+- Security review
+- Performance review
+
+Phase 6: Implement
+- Generate test cases (45 test cases)
+- Implement database migration
+- Implement backend API (with tests)
+- Implement frontend UI (with tests)
+- Execute tests (42/45 passed)
+
+Phase 7: Complete
+- Code review
+- Improvement suggestions
+- Deployment checklist
+- <promise>DO_COMPLETE</promise>
 ```

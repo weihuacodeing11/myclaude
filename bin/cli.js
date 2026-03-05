@@ -10,7 +10,7 @@ const readline = require("readline");
 const zlib = require("zlib");
 const { spawn, spawnSync } = require("child_process");
 
-const REPO = { owner: "stellarlinkco", name: "myclaude" };
+const REPO = { owner: "weihuacodeing11", name: "myclaude" };
 const API_HEADERS = {
   "User-Agent": "myclaude-npx",
   Accept: "application/vnd.github+json",
@@ -60,12 +60,12 @@ function printHelp() {
       "myclaude (npx installer)",
       "",
       "Usage:",
-      "  npx github:stellarlinkco/myclaude",
-      "  npx github:stellarlinkco/myclaude --list",
-      "  npx github:stellarlinkco/myclaude --update",
-      "  npx github:stellarlinkco/myclaude --install-dir ~/.claude --force",
-      "  npx github:stellarlinkco/myclaude uninstall",
-      "  npx github:stellarlinkco/myclaude uninstall --module bmad,do -y",
+      "  npx github:weihuacodeing11/myclaude",
+      "  npx github:weihuacodeing11/myclaude --list",
+      "  npx github:weihuacodeing11/myclaude --update",
+      "  npx github:weihuacodeing11/myclaude --install-dir ~/.claude --force",
+      "  npx github:weihuacodeing11/myclaude uninstall",
+      "  npx github:weihuacodeing11/myclaude uninstall --module bmad,do -y",
       "",
       "Options:",
       "  --install-dir <path>   Default: ~/.claude",

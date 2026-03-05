@@ -13,14 +13,22 @@ HOOK_PATH = "~/.claude/skills/do/hooks/stop-hook.py"
 MODELS_JSON_TEMPLATE = {
     "agents": {
         "code-explorer": {
+            "backend": "opencode",
+            "model": "opencode/grok-code"
+        },
+        "design-reviewer": {
             "backend": "claude",
             "model": "claude-sonnet-4-5-20250929"
         },
-        "code-architect": {
+        "test-executor": {
             "backend": "claude",
             "model": "claude-sonnet-4-5-20250929"
         },
         "code-reviewer": {
+            "backend": "claude",
+            "model": "claude-sonnet-4-5-20250929"
+        },
+        "develop": {
             "backend": "claude",
             "model": "claude-sonnet-4-5-20250929"
         }

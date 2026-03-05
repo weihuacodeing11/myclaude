@@ -5,14 +5,14 @@
 [![Run in Smithery](https://smithery.ai/badge/skills/stellarlinkco)](https://smithery.ai/skills?ns=stellarlinkco&utm_source=github&utm_medium=badge)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Claude Code](https://img.shields.io/badge/Claude-Code-blue)](https://claude.ai/code)
-[![Version](https://img.shields.io/badge/Version-6.x-green)](https://github.com/stellarlinkco/myclaude)
+[![Version](https://img.shields.io/badge/Version-6.x-green)](https://github.com/weihuacodeing11/myclaude)
 
 > AI-powered development automation with multi-backend execution (Codex/Claude/Gemini/OpenCode)
 
 ## Quick Start
 
 ```bash
-npx github:stellarlinkco/myclaude
+npx github:weihuacodeing11/myclaude
 ```
 
 ## Modules Overview
@@ -30,7 +30,7 @@ npx github:stellarlinkco/myclaude
 
 ### Available Skills
 
-Individual skills can be installed separately via `npx github:stellarlinkco/myclaude --list` (skills bundled in modules like do, omo, sparv are listed above):
+Individual skills can be installed separately via `npx github:weihuacodeing11/myclaude --list` (skills bundled in modules like do, omo, sparv are listed above):
 
 | Skill | Description |
 |-------|-------------|
@@ -48,16 +48,16 @@ Individual skills can be installed separately via `npx github:stellarlinkco/mycl
 
 ```bash
 # Interactive installer (recommended)
-npx github:stellarlinkco/myclaude
+npx github:weihuacodeing11/myclaude
 
 # List installable items (modules / skills / wrapper)
-npx github:stellarlinkco/myclaude --list
+npx github:weihuacodeing11/myclaude --list
 
 # Detect installed modules and update from GitHub
-npx github:stellarlinkco/myclaude --update
+npx github:weihuacodeing11/myclaude --update
 
 # Custom install directory / overwrite
-npx github:stellarlinkco/myclaude --install-dir ~/.claude --force
+npx github:weihuacodeing11/myclaude --install-dir ~/.claude --force
 ```
 
 `--update` detects already installed modules in the target install dir (defaults to `~/.claude`, via `installed_modules.json` when present) and updates them from GitHub (latest release) by overwriting the module files.
@@ -132,13 +132,13 @@ Edit `config.json` to enable/disable modules:
 **Codex wrapper not found:**
 ```bash
 # Select: codeagent-wrapper
-npx github:stellarlinkco/myclaude
+npx github:weihuacodeing11/myclaude
 ```
 
 **Module not loading:**
 ```bash
 cat ~/.claude/installed_modules.json
-npx github:stellarlinkco/myclaude --force
+npx github:weihuacodeing11/myclaude --force
 ```
 
 **Backend CLI errors:**
@@ -156,7 +156,7 @@ which gemini && gemini --version
 | Gemini can't read .gitignore files | Remove from .gitignore or use different backend |
 | Codex permission denied | Set `approval_policy = "never"` in ~/.codex/config.yaml |
 
-See [GitHub Issues](https://github.com/stellarlinkco/myclaude/issues) for more.
+See [GitHub Issues](https://github.com/weihuacodeing11/myclaude/issues) for more.
 
 ## License
 
@@ -168,4 +168,4 @@ For commercial use without AGPL obligations, contact: support@stellarlink.co
 
 ## Support
 
-- [GitHub Issues](https://github.com/stellarlinkco/myclaude/issues)
+- [GitHub Issues](https://github.com/weihuacodeing11/myclaude/issues)
