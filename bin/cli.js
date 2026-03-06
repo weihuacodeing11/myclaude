@@ -15,8 +15,8 @@ const API_HEADERS = {
   "User-Agent": "myclaude-npx",
   Accept: "application/vnd.github+json",
 };
-const WRAPPER_REQUIRED_MODULES = new Set(["do", "omo"]);
-const WRAPPER_REQUIRED_SKILLS = new Set(["dev"]);
+const WRAPPER_REQUIRED_MODULES = new Set([]);  // No modules require wrapper anymore
+const WRAPPER_REQUIRED_SKILLS = new Set([]);   // No skills require wrapper anymore
 
 function parseArgs(argv) {
   const out = {

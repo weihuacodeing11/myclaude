@@ -1,23 +1,50 @@
 # Skills
 
-This directory contains agent skills (each skill lives in its own folder with a `SKILL.md`).
+This directory contains specialized skills that power the `/do` workflow.
 
-## Install with `npx` (recommended)
+## Core Skills
 
-List installable items:
+| Skill | Purpose |
+|-------|---------|
+| `do` | Main 7-phase workflow orchestrator |
+| `product-requirements` | Interactive PRD generation with quality scoring |
+| `ask-questions-if-underspecified` | Clarify technical choices |
+| `best-practices` | Optimize requirements with 5 transformation principles |
+| `database-design` | Design database schema and migrations |
+| `backend-development` | Design backend API and architecture |
+| `frontend-design` | Design frontend UI and components |
+| `test-cases` | Generate structured test cases |
 
-```bash
-npx github:weihuacodeing11/myclaude --list
-```
+## Installation
 
-Install (interactive; pick `skill:<name>`):
+All skills are installed together with the `/do` workflow:
 
 ```bash
 npx github:weihuacodeing11/myclaude
 ```
 
-Force overwrite / custom install directory:
+## Usage
+
+Skills are automatically invoked by the `/do` workflow. You don't need to call them individually.
 
 ```bash
-npx github:weihuacodeing11/myclaude --install-dir ~/.claude --force
+/do "your task description"
 ```
+
+The workflow will:
+1. Use `/product-requirements` to generate PRD
+2. Use `/ask-questions-if-underspecified` if clarification needed
+3. Use `/best-practices` to optimize requirements
+4. Use `/database-design`, `/backend-development`, `/frontend-design` for architecture
+5. Use `/test-cases` to generate test cases
+6. Implement everything using current Claude model
+
+## Skill Structure
+
+Each skill lives in its own directory with:
+- `SKILL.md` - Skill definition and instructions
+- `references/` (optional) - Supporting documentation
+
+## Learn More
+
+See the main [README](../README.md) for complete documentation.

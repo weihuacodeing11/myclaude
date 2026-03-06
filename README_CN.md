@@ -1,188 +1,58 @@
-# Claude Code 多智能体工作流系统
+# myclaude
 
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![Claude Code](https://img.shields.io/badge/Claude-Code-blue)](https://claude.ai/code)
-[![Version](https://img.shields.io/badge/Version-6.x-green)](https://github.com/weihuacodeing11/myclaude)
+[![Version](https://img.shields.io/badge/Version-7.0-green)](https://github.com/weihuacodeing11/myclaude)
 
-> AI 驱动的开发自动化 - 多后端执行架构 (Codex/Claude/Gemini/OpenCode)
+> 为 Claude Code 打造的精简 AI 工作流 - 从需求到完整应用
+
+[English](README.md) | 中文
+
+## 这是什么？
+
+一个完整的工作流（`/do`），让你从一个简单的想法到一个完全实现的应用或网站。零外部依赖，无需复杂配置 - 只需 Claude Code 做它最擅长的事。
 
 ## 快速开始
 
 ```bash
+# 安装
 npx github:weihuacodeing11/myclaude
+
+# 使用
+/do "构建一个带用户认证的待办事项应用"
 ```
 
-## 模块概览
+就这么简单！工作流会：
+1. 📋 通过交互式对话生成完整的 PRD
+2. 🔍 探索你的代码库寻找模式
+3. ❓ 澄清任何技术细节
+4. 🎨 设计数据库、后端和前端
+5. ✅ 获取你对设计的批准
+6. 💻 实现所有功能并编写测试
+7. 🚀 代码审查并提供部署清单
 
-| 模块 | 描述 | 文档 |
-|------|------|------|
-| [do](skills/do/README.md) | **推荐** - 5 阶段功能开发 + codeagent 编排 | `/do` 命令 |
-| [omo](skills/omo/README.md) | 多智能体编排 + 智能路由 | `/omo` 命令 |
-| [bmad](agents/bmad/README.md) | BMAD 敏捷工作流 + 6 个专业智能体 | `/bmad-pilot` 命令 |
-| [requirements](agents/requirements/README.md) | 轻量级需求到代码流水线 | `/requirements-pilot` 命令 |
-| [essentials](agents/development-essentials/README.md) | 11 个核心开发命令：ask、bugfix、code、debug、docs、enhance-prompt、optimize、refactor、review、test、think | `/code`, `/debug` 等 |
-| [sparv](skills/sparv/README.md) | SPARV 工作流 (Specify→Plan→Act→Review→Vault) | `/sparv` 命令 |
-| course | 课程开发（组合 dev + product-requirements + test-cases） | 组合模块 |
-| claudekit | ClaudeKit：do 技能 + 全局钩子（pre-bash、inject-spec、log-prompt）| 组合模块 |
+## `/do` 工作流
 
-### 可用技能
+7 个阶段的系统化方法：
 
-可通过 `npx github:weihuacodeing11/myclaude --list` 单独安装技能（模块内置技能如 do、omo、sparv 见上表）：
+| 阶段 | 功能 |
+|-------|-------------|
+| **1. 理解需求** | 通过交互式 PRD 生成收集需求 |
+| **2. 技术澄清** | 可选的技术选型澄清 |
+| **3. 优化需求** | 应用最佳实践转换需求 |
+| **4. 架构设计** | 数据库、后端和前端架构设计 |
+| **5. 设计审查** | 设计一致性和安全性检查 |
+| **6. 代码实现** | 使用当前 Claude 模型直接实现 |
+| **7. 完成总结** | 最终代码审查和部署清单 |
 
-| 技能 | 描述 |
-|------|------|
-| browser | 浏览器自动化测试和数据提取 |
-| codeagent | codeagent-wrapper 多后端 AI 代码任务调用 |
-| codex | Codex 后端直接执行 |
-| dev | 轻量级端到端开发工作流 |
-| gemini | Gemini 后端直接执行 |
-| product-requirements | 交互式 PRD 生成（含质量评分）|
-| prototype-prompt-generator | 结构化 UI/UX 原型提示词生成 |
-| skill-install | 从 GitHub 安装技能（含安全扫描）|
-| test-cases | 从需求生成全面测试用例 |
+## 特性
 
-## 核心架构
-
-| 角色 | 智能体 | 职责 |
-|------|-------|------|
-| **编排者** | Claude Code | 规划、上下文收集、验证 |
-| **执行者** | codeagent-wrapper | 代码编辑、测试执行（Codex/Claude/Gemini/OpenCode 后端）|
-
-## 工作流详解
-
-### do 工作流（推荐）
-
-5 阶段功能开发，通过 codeagent-wrapper 编排多个智能体。**大多数功能开发任务的首选工作流。**
-
-```bash
-/do "添加用户登录功能"
-```
-
-**5 阶段：**
-| 阶段 | 名称 | 目标 |
-|------|------|------|
-| 1 | Understand | 并行探索理解需求和映射代码库 |
-| 2 | Clarify | 解决阻塞性歧义（条件触发）|
-| 3 | Design | 产出最小变更实现方案 |
-| 4 | Implement + Review | 构建功能并审查 |
-| 5 | Complete | 记录构建结果 |
-
-**智能体：**
-- `code-explorer` - 代码追踪、架构映射
-- `code-architect` - 设计方案、文件规划
-- `code-reviewer` - 代码审查、简化建议
-- `develop` - 实现代码、运行测试
-
----
-
-### OmO 多智能体编排器
-
-基于风险信号智能路由任务到专业智能体。
-
-```bash
-/omo "分析并修复这个认证 bug"
-```
-
-**智能体层级：**
-| 智能体 | 角色 | 后端 |
-|-------|------|------|
-| `oracle` | 技术顾问 | Claude |
-| `librarian` | 外部研究 | Claude |
-| `explore` | 代码库搜索 | OpenCode |
-| `develop` | 代码实现 | Codex |
-| `frontend-ui-ux-engineer` | UI/UX 专家 | Gemini |
-| `document-writer` | 文档撰写 | Gemini |
-
-**常用配方：**
-- 解释代码：`explore`
-- 位置已知的小修复：直接 `develop`
-- Bug 修复（位置未知）：`explore → develop`
-- 跨模块重构：`explore → oracle → develop`
-
----
-
-### SPARV 工作流
-
-极简 5 阶段工作流：Specify → Plan → Act → Review → Vault。
-
-```bash
-/sparv "实现订单导出功能"
-```
-
-**核心规则：**
-- **10 分规格门**：得分 0-10，必须 >=9 才能进入 Plan
-- **2 动作保存**：每 2 次工具调用写入 journal.md
-- **3 失败协议**：连续 3 次失败后停止并上报
-- **EHRB**：高风险操作需明确确认
-
-**评分维度（各 0-2 分）：**
-1. Value - 为什么做，可验证的收益
-2. Scope - MVP + 不在范围内的内容
-3. Acceptance - 可测试的验收标准
-4. Boundaries - 错误/性能/兼容/安全边界
-5. Risk - EHRB/依赖/未知 + 处理方式
-
----
-
-### BMAD 敏捷工作流
-
-完整企业敏捷方法论 + 6 个专业智能体。
-
-```bash
-/bmad-pilot "构建电商结账系统"
-```
-
-**智能体角色：**
-| 智能体 | 职责 |
-|-------|------|
-| Product Owner | 需求与用户故事 |
-| Architect | 系统设计与技术决策 |
-| Scrum Master | Sprint 规划与任务分解 |
-| Developer | 实现 |
-| Code Reviewer | 质量保证 |
-| QA Engineer | 测试与验证 |
-
-**审批门：**
-- PRD 完成后（90+ 分）需用户审批
-- 架构完成后（90+ 分）需用户审批
-
----
-
-### 需求驱动工作流
-
-轻量级需求到代码流水线。
-
-```bash
-/requirements-pilot "实现 API 限流"
-```
-
-**100 分质量评分：**
-- 功能清晰度：30 分
-- 技术具体性：25 分
-- 实现完整性：25 分
-- 业务上下文：20 分
-
----
-
-### 开发基础命令
-
-日常编码任务的直接命令。
-
-| 命令 | 用途 |
-|------|------|
-| `/code` | 实现功能 |
-| `/debug` | 调试问题 |
-| `/test` | 编写测试 |
-| `/review` | 代码审查 |
-| `/optimize` | 性能优化 |
-| `/refactor` | 代码重构 |
-| `/docs` | 编写文档 |
-| `/ask` | 提问和咨询 |
-| `/bugfix` | Bug 修复 |
-| `/enhance-prompt` | 提示词优化 |
-| `/think` | 深度思考分析 |
-
----
+- ✨ **零依赖** - 完全使用 Claude Code 当前模型
+- 🎯 **单一工作流** - 一个命令，完整解决方案
+- 🔄 **交互式** - 需要时才提问，不提前询问
+- 📦 **简单安装** - 一条 NPX 命令
+- 🧪 **测试驱动** - 生成并验证测试用例
+- 🎨 **设计优先** - 实现前获得批准
 
 ## 安装
 
@@ -190,86 +60,120 @@ npx github:weihuacodeing11/myclaude
 # 交互式安装器（推荐）
 npx github:weihuacodeing11/myclaude
 
-# 列出可安装项（module:* / skill:* / codeagent-wrapper）
-npx github:weihuacodeing11/myclaude --list
+# 或直接安装
+python install.py --module do
 
-# 检测已安装 modules 并从 GitHub 更新
-npx github:weihuacodeing11/myclaude --update
-
-# 指定安装目录 / 强制覆盖
-npx github:weihuacodeing11/myclaude --install-dir ~/.claude --force
+# 检查状态
+python install.py --status
 ```
 
-`--update` 会在目标安装目录（默认 `~/.claude`，优先读取 `installed_modules.json`）检测已安装 modules，并从 GitHub 拉取最新发布版本覆盖更新。
+## 安装后
 
-### 模块配置
+工作流会安装到 `~/.claude/`：
 
-编辑 `config.json` 启用/禁用模块：
-
-```json
-{
-  "modules": {
-    "bmad": { "enabled": false },
-    "requirements": { "enabled": false },
-    "essentials": { "enabled": false },
-    "omo": { "enabled": false },
-    "sparv": { "enabled": false },
-    "do": { "enabled": true },
-    "course": { "enabled": false }
-  }
-}
+```
+~/.claude/
+├── skills/do/              # /do 工作流
+│   ├── SKILL.md           # 主工作流定义
+│   └── scripts/           # 任务管理脚本
+└── installed_modules.json  # 跟踪安装状态
 ```
 
-## 工作流选择指南
+## 使用示例
 
-| 场景 | 推荐 |
-|------|------|
-| 功能开发（默认） | `/do` |
-| Bug 调查 + 修复 | `/omo` |
-| 大型企业项目 | `/bmad-pilot` |
-| 快速原型 | `/requirements-pilot` |
-| 简单任务 | `/code`, `/debug` |
-
-## 后端 CLI 要求
-
-| 后端 | 必需功能 |
-|------|----------|
-| Codex | `codex e`, `--json`, `-C`, `resume` |
-| Claude | `--output-format stream-json`, `-r` |
-| Gemini | `-o stream-json`, `-y`, `-r` |
-| OpenCode | `opencode`, stdin 模式 |
-
-## 故障排查
-
-**Codex wrapper 未找到：**
+### 构建待办事项应用
 ```bash
-# 选择：codeagent-wrapper
-npx github:weihuacodeing11/myclaude
+/do "构建一个带用户认证和实时更新的待办事项应用"
 ```
+
+### 创建落地页
+```bash
+/do "为 SaaS 产品创建一个现代化的落地页，包含定价层级"
+```
+
+### 添加功能
+```bash
+/do "为现有仪表板添加导出到 CSV 的功能"
+```
+
+## 工作原理
+
+`/do` 工作流集成了多个专业技能：
+
+- **product-requirements** - 带质量评分的交互式 PRD 生成
+- **ask-questions-if-underspecified** - 澄清技术选择
+- **best-practices** - 用 5 个转换原则优化需求
+- **database-design** - 设计数据库架构和迁移
+- **backend-development** - 设计后端 API 和架构
+- **frontend-design** - 设计前端 UI 和组件
+- **test-cases** - 生成结构化测试用例
+
+全部由 Claude Code 当前模型编排 - 无需外部工具。
+
+## 会生成什么？
+
+### 数据库层
+- 规范化的架构设计
+- 优化的索引
+- 迁移脚本
+- 种子数据
+
+### 后端层
+- RESTful API 端点
+- 认证/授权
+- 数据访问层
+- 缓存策略
+- 错误处理
+- 日志和监控
+
+### 前端层
+- 组件架构
+- 状态管理
+- API 集成
+- 响应式设计
+- 无障碍访问（WCAG AA）
+- 加载状态和错误处理
+
+### 测试
+- 单元测试
+- 集成测试
+- 端到端测试
+- 测试覆盖率 > 80%
+
+## 技术特性
+
+- **设计优先**：实现前获得批准
+- **测试驱动**：编码前生成测试用例
+- **最佳实践**：自动应用行业标准
+- **安全聚焦**：内置安全检查
+- **性能优化**：缓存和查询优化
+- **生产就绪**：包含部署清单
+
+## 故障排除
 
 **模块未加载：**
 ```bash
 cat ~/.claude/installed_modules.json
-npx github:weihuacodeing11/myclaude --force
+python install.py --force --module do
 ```
 
-## FAQ
+**安装错误：**
+```bash
+python3 --version  # 需要 3.7+
+python install.py --force --module do
+```
 
-| 问题 | 解决方案 |
-|------|----------|
-| "Unknown event format" | 日志显示问题，可忽略 |
-| Gemini 无法读取 .gitignore 文件 | 从 .gitignore 移除或使用其他后端 |
-| Codex 权限拒绝 | 在 ~/.codex/config.yaml 设置 `approval_policy = "never"` |
+## 卸载
 
-更多问题请访问 [GitHub Issues](https://github.com/weihuacodeing11/myclaude/issues)。
+```bash
+python uninstall.py
+```
 
 ## 许可证
 
 AGPL-3.0 - 查看 [LICENSE](LICENSE)
 
-### 商业授权
-
-如需商业授权（无需遵守 AGPL 义务），请联系：support@stellarlink.co
+商业使用无需 AGPL 义务，请联系：support@stellarlink.co
 
 ## 支持
 
