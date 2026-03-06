@@ -522,7 +522,7 @@ async function updateInstalledModules(installDir, tag, config, dryRun) {
 }
 
 function buildItems(config, skills) {
-  const items = [{ id: "codeagent-wrapper", label: "codeagent-wrapper", kind: "wrapper" }];
+  const items = [];
 
   const modules = (config && config.modules) || {};
   for (const [name, mod] of Object.entries(modules)) {
@@ -535,9 +535,8 @@ function buildItems(config, skills) {
     });
   }
 
-  for (const s of skills) {
-    items.push({ id: `skill:${s}`, label: `skill:${s}`, kind: "skill", skillName: s });
-  }
+  // Don't show individual skills - they're installed via modules
+  // Don't show codeagent-wrapper - no longer needed
 
   return items;
 }
@@ -1026,45 +1025,25 @@ async function installDefaultConfigs(installDir, repoRoot) {
 
 function printPostInstallInfo(installDir) {
   process.stdout.write("\n");
+  process.stdout.write("✓ Installation complete!\n");
+  process.stdout.write(`  Installed to: ${installDir}\n`);
 
-  // Check codeagent-wrapper version
-  const wrapperBin = path.join(installDir, "bin", "codeagent-wrapper");
-  let wrapperVersion = null;
-  try {
-    const r = spawnSync(wrapperBin, ["--version"], { timeout: 5000 });
-    if (r.status === 0 && r.stdout) {
-      wrapperVersion = r.stdout.toString().trim();
-    }
-  } catch {}
-
-  // Check PATH
-  const binDir = path.join(installDir, "bin");
-  const envPath = process.env.PATH || "";
-  const pathOk = envPath.split(path.delimiter).some((p) => {
-    try { return fs.realpathSync(p) === fs.realpathSync(binDir); } catch { return p === binDir; }
-  });
-
-  // Check backend CLIs
-  const whichCmd = process.platform === "win32" ? "where" : "which";
-  const backends = ["codex", "claude", "gemini", "opencode"];
-  const detected = {};
-  for (const name of backends) {
-    try {
-      const r = spawnSync(whichCmd, [name], { timeout: 3000 });
-      detected[name] = r.status === 0;
-    } catch {
-      detected[name] = false;
-    }
+  // Check if skills/do exists
+  const doSkill = path.join(installDir, "skills", "do");
+  if (fs.existsSync(doSkill)) {
+    process.stdout.write("  /do workflow: ✓\n");
   }
 
-  process.stdout.write("Setup Complete!\n");
-  process.stdout.write(`  codeagent-wrapper: ${wrapperVersion || "(not found)"} ${wrapperVersion ? "✓" : "✗"}\n`);
-  process.stdout.write(`  PATH: ${binDir} ${pathOk ? "✓" : "✗ (not in PATH)"}\n`);
-  process.stdout.write("\nBackend CLIs detected:\n");
-  process.stdout.write("  " + backends.map((b) => `${b} ${detected[b] ? "✓" : "✗"}`).join("  |  ") + "\n");
   process.stdout.write("\nNext steps:\n");
-  process.stdout.write("  1. Configure API keys in ~/.codeagent/models.json\n");
-  process.stdout.write('  2. Try: /do "your first task"\n');
+  process.stdout.write('  1. Try: /do "build a todo app with user authentication"\n');
+  process.stdout.write("  2. The workflow will guide you through 7 phases:\n");
+  process.stdout.write("     • Requirements Analysis (PRD generation)\n");
+  process.stdout.write("     • Technical Clarification\n");
+  process.stdout.write("     • Requirements Optimization\n");
+  process.stdout.write("     • Design (Database, Backend, Frontend)\n");
+  process.stdout.write("     • Design Review\n");
+  process.stdout.write("     • Implementation\n");
+  process.stdout.write("     • Completion & Deployment\n");
   process.stdout.write("\n");
 }
 

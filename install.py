@@ -1256,43 +1256,24 @@ def print_post_install_info(ctx: Dict[str, Any]) -> None:
     """Print post-install verification and setup guidance."""
     install_dir = ctx["install_dir"]
 
-    # Check codeagent-wrapper version
-    wrapper_bin = install_dir / "bin" / "codeagent-wrapper"
-    wrapper_version = None
-    try:
-        result = subprocess.run(
-            [str(wrapper_bin), "--version"],
-            capture_output=True, text=True, timeout=5,
-        )
-        if result.returncode == 0:
-            wrapper_version = result.stdout.strip()
-    except Exception:
-        pass
+    print("\n✓ Installation complete!")
+    print(f"  Installed to: {install_dir}")
 
-    # Check PATH
-    bin_dir = str(install_dir / "bin")
-    env_path = os.environ.get("PATH", "")
-    path_ok = any(
-        os.path.realpath(p) == os.path.realpath(bin_dir)
-        if os.path.exists(p) else p == bin_dir
-        for p in env_path.split(os.pathsep)
-    )
+    # Check if skills/do exists
+    do_skill = install_dir / "skills" / "do"
+    if do_skill.exists():
+        print(f"  /do workflow: ✓")
 
-    # Check backend CLIs
-    backends = ["codex", "claude", "gemini", "opencode"]
-    detected = {name: shutil.which(name) is not None for name in backends}
-
-    print("\nSetup Complete!")
-    v_mark = "✓" if wrapper_version else "✗"
-    print(f"  codeagent-wrapper: {wrapper_version or '(not found)'} {v_mark}")
-    p_mark = "✓" if path_ok else "✗ (not in PATH)"
-    print(f"  PATH: {bin_dir} {p_mark}")
-    print("\nBackend CLIs detected:")
-    cli_parts = [f"{b} {'✓' if detected[b] else '✗'}" for b in backends]
-    print("  " + "  |  ".join(cli_parts))
     print("\nNext steps:")
-    print("  1. Configure API keys in ~/.codeagent/models.json")
-    print('  2. Try: /do "your first task"')
+    print('  1. Try: /do "build a todo app with user authentication"')
+    print("  2. The workflow will guide you through 7 phases:")
+    print("     • Requirements Analysis (PRD generation)")
+    print("     • Technical Clarification")
+    print("     • Requirements Optimization")
+    print("     • Design (Database, Backend, Frontend)")
+    print("     • Design Review")
+    print("     • Implementation")
+    print("     • Completion & Deployment")
     print()
 
 
