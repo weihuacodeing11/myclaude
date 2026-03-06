@@ -12,6 +12,25 @@
 
 一个完整的工作流（`/do`），让你从一个简单的想法到一个完全实现的应用或网站。零外部依赖，无需复杂配置 - 只需 Claude Code 做它最擅长的事。
 
+## 系统要求
+
+**使用 `/do` 工作流时：**
+- **Python 3.7+**（仅使用标准库，无需额外安装包）
+- **Claude Code CLI**
+
+**安装时：**
+- **Node.js**（如果使用 NPX 安装器）
+- **或 Python 3.7+**（如果使用 `python install.py`）
+
+大多数系统已预装 Python 3。检查方法：
+```bash
+python3 --version
+```
+
+如未安装：
+- **macOS/Linux**：通常已预装
+- **Windows**：从 [python.org](https://www.python.org/downloads/) 下载
+
 ## 快速开始
 
 ```bash
@@ -60,11 +79,8 @@ npx github:weihuacodeing11/myclaude
 # 交互式安装器（推荐）
 npx github:weihuacodeing11/myclaude
 
-# 或直接安装
-python install.py --module do
-
-# 检查状态
-python install.py --status
+# 或使用 Python 直接安装（覆盖已有安装）
+python install.py
 ```
 
 ## 安装后
@@ -166,6 +182,7 @@ python install.py --force --module do
 ## 卸载
 
 ```bash
+# 删除所有已安装的文件
 python uninstall.py
 ```
 

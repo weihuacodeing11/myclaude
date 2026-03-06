@@ -11,6 +11,15 @@ If --worktree is specified, also creates a git worktree for isolated development
 import argparse
 import sys
 
+# Check Python version
+if sys.version_info < (3, 7):
+    print("Error: Python 3.7 or later is required", file=sys.stderr)
+    print(f"Current version: {sys.version}", file=sys.stderr)
+    print("\nInstallation instructions:", file=sys.stderr)
+    print("  macOS/Linux: Usually pre-installed", file=sys.stderr)
+    print("  Windows: Download from https://www.python.org/downloads/", file=sys.stderr)
+    sys.exit(1)
+
 from task import create_task, PHASE_NAMES
 
 

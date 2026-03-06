@@ -12,6 +12,25 @@ English | [中文](README_CN.md)
 
 A single, comprehensive workflow (`/do`) that takes you from a simple idea to a fully implemented app or website. No external dependencies, no complex setup - just Claude Code doing what it does best.
 
+## Requirements
+
+**For using the `/do` workflow:**
+- **Python 3.7+** (uses only standard library, no external packages needed)
+- **Claude Code CLI**
+
+**For installation:**
+- **Node.js** (if using NPX installer)
+- **OR Python 3.7+** (if using `python install.py`)
+
+Most systems have Python 3 pre-installed. Check with:
+```bash
+python3 --version
+```
+
+If not installed:
+- **macOS/Linux**: Usually pre-installed
+- **Windows**: Download from [python.org](https://www.python.org/downloads/)
+
 ## Quick Start
 
 ```bash
@@ -60,11 +79,8 @@ A 7-phase systematic approach:
 # Interactive installer (recommended)
 npx github:weihuacodeing11/myclaude
 
-# Or install directly
-python install.py --module do
-
-# Check status
-python install.py --status
+# Or install directly with Python (overwrites existing installation)
+python install.py
 ```
 
 ## After Installation
@@ -127,6 +143,7 @@ python install.py --force --module do
 ## Uninstall
 
 ```bash
+# Remove all installed files
 python uninstall.py
 ```
 
